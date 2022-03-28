@@ -21,7 +21,7 @@
 Spring Semester 2022 - Project 2
 
 Please accept Project 2 on **GitHub Classroom** using the following link:
-TBD
+https://classroom.github.com/a/rcSwVzlv
 
 * DUE: Apr 29 (Friday), 2022 11:59 PM
 
@@ -57,6 +57,17 @@ processor pipeline also has a write-buffer to maintain pending stores with long
 delays.  We are going to assume for simplicity that all the write-buffers are
 infinitely sized.  That means that the processor will never suffer stalls due
 to write-backs of dirty blocks or store instructions.
+
+Also, each cache is a non-blocking cache, meaning that while the cache is
+waiting on a cache miss, the cache can continue servicing other memory
+requests, be they cache hits or cache misses.  This is done through the Miss
+Status Handling Register (MSHR) table that we discussed briefly in class.
+Each entry in the table has an ID for each missing memory request and the
+required action when the request returns from the lower memory hierarchy.
+This allows the cache to handle multiple outstanding misses that may return
+out-of-order from the lower memory hierarchy.  We are also going to assume
+that the MSHR table is infitely sized so that we can have an infinite number
+of outstanding misses and never have to block.
 
 # Building and Running
 
