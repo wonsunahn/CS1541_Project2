@@ -1,7 +1,7 @@
 TARGETS = five_stage trace_reader trace_generator
 
 SHORT_TRACES_DIR = /afs/cs.pitt.edu/courses/1541/short_traces
-GNUPLOT = /afs/cs.pitt.edu/courses/1541/gnuplot-5.2.8/bin/gnuplot
+GNUPLOT = /afs/cs.pitt.edu/courses/1541/gnuplot-5.2.8-thoth/bin/gnuplot
 
 CONFS = $(wildcard confs/*.conf)
 TRACES = $(wildcard traces/*.tr)
@@ -14,7 +14,7 @@ PLOT_CONFS = $(wildcard plot_confs/*.conf)
 PLOT_OUTPUTS := $(foreach conf,$(PLOT_CONFS),$(foreach trace, $(SHORT_TRACES), plots/$(trace:$(SHORT_TRACES_DIR)/%.tr=%).$(conf:plot_confs/%.conf=%).out))
 PLOT_OUTPUTS_SOLUTION := $(foreach conf,$(PLOT_CONFS),$(foreach trace, $(SHORT_TRACES), plots_solution/$(trace:$(SHORT_TRACES_DIR)/%.tr=%).$(conf:plot_confs/%.conf=%).out))
 
-COPT = -g -Wall -std=c++11 -I/usr/include/glib-2.0/ -I/usr/lib64/glib-2.0/include/
+COPT = -g -Wall -Wno-format-security -std=c++11 -I/usr/include/glib-2.0/ -I/usr/lib/x86_64-linux-gnu/glib-2.0/include/
 LOPT = -lglib-2.0
 CC = g++
 
