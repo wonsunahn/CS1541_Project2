@@ -18,9 +18,12 @@
 - [Resources](#resources)
   
 # CS/COE 1541 - Introduction to Computer Architecture
-Fall Semester 2020 - Project 2
+Spring Semester 2022 - Project 2
 
-* Source Code DUE: Dec 4 (Friday), 2020 11:59 PM
+Please accept Project 2 on **GitHub Classroom** using the following link:
+TBD
+
+* DUE: Apr 29 (Friday), 2022 11:59 PM
 
 # Introduction
 
@@ -59,37 +62,7 @@ to write-backs of dirty blocks or store instructions.
 
 ## Environment Setup
 
-The project is setup to run with the g++ compiler (GNU C++ compiler) and a Make
-build system.  This system is already in place on the departmental Linux
-machines (linux.cs.pitt.edu).  If you have a similar setup on your local
-computer, please feel free to use your machine for development.  Otherwise, you
-need log in to linux.cs.pitt.edu which may involve some setup.  Here are the
-steps you need to take:
-
-1. If you haven't already, install Pulse VPN Desktop Client.  Instructions on how to download and use:
-https://www.technology.pitt.edu/services/pittnet-vpn-pulse-secure
-Then, set up the VPN client and connect to Pitt VPN  as follows:
-https://www.technology.pitt.edu/help-desk/how-to-documents/pittnet-vpn-pulse-secure-connect-pulse-secure-client
-
-2. Most OSes (Windows, MacOS, Linux) comes with built-in SSH clients accessible using this simple command on your commandline shell:
-   ```
-   ssh USERNAME@linux.cs.pitt.edu
-   ```
-   If you want a more fancy SSH client, you can download Putty, a free open source terminal:
-   https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html
-   Connect to "linux.cs.pitt.edu" by typing that in the "Host Name" box.  Make sure that port is 22 and SSH is selected in the radio button options.
-
-3. Once connected, the host will ask for your Pitt SSO credentials.  Enter your ID and password.
-
-4. Once logged in, check your quota by typing "fs lq":
-   ```
-   $ fs lq
-   Volume Name                    Quota       Used %Used   Partition
-   u.wahn                       2547712    1543899   61%         85%
-   ```
-   This shows your quota in KBs.  The above shows 2.5 GBs.  This project will require at least 50 MBs of disk space.  If you don't have that much remaining please contact my.pitt.edu to increase it.  By default, students are given a paltry 5 MBs of space so it is likely that you don't have the space.  I have been told that you can be given up to 2 GBs of space if you ask for it.  The fastest way to contact my.pitt.edu is through the **live chat** on the website.  It should just take a minute or two.
-
-The project files are within the directory /afs/cs.pitt.edu/courses/1541/project2 once you are logged in to linux.cs.pitt.edu.  Identical files are also on this GitHub folder.  Copy the project files to a working directory of your choice and cd into that directory.
+Please refer to [Project 1 Environment Setup](https://github.com/wonsunahn/CS1541_Spring2022/tree/main/projects/1#environment-setup).
 
 ## Directory Structure and Makefile Script
 
@@ -112,16 +85,14 @@ log2i.cpp / log2i.h : Contains the log2i function, a log2 for integers.
 doc/ : Directory where Doxygen documentation of the source code is kept.
 
 # Source code inherited from Project 1 with small modifications.
+five_stage_solution : **Reference solution binary** for the project.
+Makefile : The build script for the Make tool.
 config.c / config.h : Functions used to parse and read in the processor configuration file.
 CPU.c / CPU.h : Implements the five stages of the processor pipeline, modified to consider memory stalls.
 five_stage.c : Main function. Parses commandline arguments and invokes the five stages at every clock cycle.
 trace.c / trace.h : Functions to read and write the trace file.
 trace_generator.c : Utility program to generate a trace file of your own.
 trace_reader.c : Utility program to read and print out the contents of a trace file in human readable format.
-
-# Files inherited from Project 1 with some modifications.
-five_stage_solution : **Reference solution binary** for the project.
-Makefile : The build script for the Make tool.
 confs/ : Directory where processor configuration files are.
 diffs/ : Directory with diffs between outputs/ and outputs_solution/ are stored.
 outputs/ : Directory where outputs after running five_stage are stored.
@@ -135,55 +106,31 @@ traces/ : Directory where instruction trace files used to test the simulator are
 In order to build the project and run the simulations, you only need to do 'make' to invoke the 'Makefile' script:
 
 ```
-$ make
-g++ -c -g -Wall -I/usr/include/glib-2.0/ -I/usr/lib64/glib-2.0/include/ five_stage.c
-g++ -c -g -Wall -I/usr/include/glib-2.0/ -I/usr/lib64/glib-2.0/include/ config.c
-g++ -c -g -Wall -I/usr/include/glib-2.0/ -I/usr/lib64/glib-2.0/include/ CPU.c
-g++ -c -g -Wall -I/usr/include/glib-2.0/ -I/usr/lib64/glib-2.0/include/ trace.c
+make
+```
+
+The output should being with:
+
+```
+g++ -c -g -Wall -Wno-format-security -std=c++11 -I/usr/include/glib-2.0/ -I/usr/lib/x86_64-linux-gnu/glib-2.0/include/ five_stage.c
+g++ -c -g -Wall -Wno-format-security -std=c++11 -I/usr/include/glib-2.0/ -I/usr/lib/x86_64-linux-gnu/glib-2.0/include/ config.c
+g++ -c -g -Wall -Wno-format-security -std=c++11 -I/usr/include/glib-2.0/ -I/usr/lib/x86_64-linux-gnu/glib-2.0/include/ CPU.c
+g++ -c -g -Wall -Wno-format-security -std=c++11 -I/usr/include/glib-2.0/ -I/usr/lib/x86_64-linux-gnu/glib-2.0/include/ trace.c
 ...
 ```
 
-If successful, it will produce the binaries: five_stage, trace_generator, and
-trace_reader as well as results of the simulation using all combinations of 2
-configuration files and 9 trace files.  A configuration file represents a
-processor design and a trace file contain instructions from a micro-benchmark,
-so you will be in effect simulating 2 processor designs on a benchmark suite.
+As in Project 1, the results of the simulations are stored in the outputs/
+directory and also side-by-side diffs with the outputs_solution/ directory are
+generated and stored in the diffs/ directory.  When you debug the program, you
+will find these side-by-side diffs useful.
+
 You can generate your own traces using the trace_generator and put it inside
 the traces/ directory or create a new configuration inside the confs/
 directory, and they will be incorporated into the results automatically by the
-Makefile script.  The results are stored in the outputs/ directory and also
-side-by-side diffs with the outputs_solution/ directory are generated and
-stored in the diffs/ directory.  When you debug the program, you will find
-these side-by-side diffs useful.
+Makefile script.  
 
-If you only wish to build your C++ files and not run the simulations, just do
-'make build' to invoked the 'build' target in the 'Makefile' script:
-
-```
-$ make build
-```
-
-If you wish to remove all files generated from your five_stage implementation (object files and experiment output), invoke the 'clean' target:
-
-```
-$ make clean
-```
-
-If you wish to remove all generated files (including ones generated from five_stage_solution), invoke the 'distclean' target:
-
-```
-$ make distclean
-```
-
-You can also run your simulator on more sizable benchmarks.  I have 4 short and
-2 long trace files: (sample1.tr, sample2.tr, sample3.tr, sample4.tr) and
-(sample_large1.tr, sample_large2.tr). These files are accessible at
-/afs/cs.pitt.edu/courses/1541/long_traces and
-/afs/cs.pitt.edu/courses/1541/short_traces. But these are not incorporated into
-the Makefile default target because they take significantly longer to run.
-When you do run these on five_stage, I recommend you do not have the -v
-(verbose) or -d (debug) flags on or the simulations will take too long and the
-output may overflow your disk space.
+The uses of the 'make build', 'make clean', and 'make distclean' commands are
+identical to Project 1.
 
 ## Program Output
 
@@ -204,7 +151,7 @@ Try doing the following:
 $ ./five_stage_solution -t traces/two_loads.tr -c confs/l1-wb.conf -d
 ```
 
-Or, alternatively just open the 'outputs_solution/two_stores.l1-wb.out' file after doing 'make'.
+Or, alternatively open the 'outputs_solution/two_stores.l1-wb.out' file after doing 'make'.
 
 And you should see the following output at the beginning:
 
@@ -393,7 +340,7 @@ Memory:readHits=2:writeHits=0
 
 There are a few invariants here:
 
-* L2Cache hits = DL1Cache misses + IL1Cache misses
+* L2Cache hits + L2Cache misses = DL1Cache misses + IL1Cache misses + DL1Cache writeBacks + IL1Cache writeBacks
 * Memory hits = L2Cache misses
 
 Make sure they hold in your code too.
@@ -417,7 +364,7 @@ Try doing the following:
 $ ./five_stage -t traces/two_loads.tr -c confs/l1-wb.conf -d
 ```
 
-Or, alternatively just open the 'outputs/two_stores.l1-wb.out' file after doing 'make'.
+Or, alternatively open the 'outputs/two_stores.l1-wb.out' file after doing 'make'.
 
 And you should see the following output after the preamble in the beginning:
 
@@ -652,23 +599,21 @@ memory bugs in C++, including memory leaks.
 
 ## Submission
 
-Each pairwise group will submit the exercise *once* to GradeScope, by *one member* of the group.  The submitting member will press the "View or edit group" link at the top-right corner of the assignment page after submission to add his/her partner.  That way, both of you will get a grade.  This applies to both the Project 1 Source Code and Project 1 Retrospective submissions explained below.
+*One member*  will submit the project on behalf of the group.  The submitting
+member will press the "View or edit group" link at the top-right corner of the
+assignment page after submission to add his/her partner.  That way, both of you
+will get a grade.  
 
 You will do two submissions for this deliverable.
 
-1. **(90 points)** Project 1 Source Code (Due Dec. 4 11:59 PM)
+1. **(90 points)** Project 2 Source Code 
    
-   To be released on GradeScope.  As for Project 1, the grading will be based on your diff results.
+   As for Project 1, the grading will be based on your diff results.
 
-1. **(20 points)** Project 1 Retrospective (Due Dec. 4 11:59 PM)
+1. **(20 points)** Project 2 Retrospective 
 
    To be released on GradeScope.  
 
 # Resources
 
-* Valgrind Memory Checker Tutorial: https://valgrind.org/docs/manual/QuickStart.html
-* Windows SSH Terminal Client: [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
-* File Transfer Client: [FileZilla](https://filezilla-project.org/download.php?type=client)
-* Linux command line tutorial: [The Linux Command Line](http://linuxcommand.org/lc3_learning_the_shell.php)
-* GitHub tutorial: [Using Git](https://github.com/wonsunahn/CS1541_Fall2020/blob/master/lectures/Using_Git.pdf)
-* GitHub GUI Client: [GitHub Desktop](https://desktop.github.com/)
+Please refer to [Project 1 Resources](https://github.com/wonsunahn/CS1541_Spring2022/tree/main/projects/1#resources).
