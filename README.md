@@ -18,12 +18,12 @@
 - [Resources](#resources)
   
 # CS/COE 1541 - Introduction to Computer Architecture
-Spring Semester 2022 - Project 2
+Spring Semester 2023 - Project 2
 
 Please accept Project 2 on **GitHub Classroom** using the following link:
-https://classroom.github.com/a/rcSwVzlv
+TBD
 
-* DUE: Apr 29 (Friday), 2022 11:59 PM
+* DUE: Apr 28 (Friday), 2023 11:59 PM
 
 # Introduction
 
@@ -73,7 +73,7 @@ of outstanding misses and never have to block.
 
 ## Environment Setup
 
-Please refer to [Project 1 Environment Setup](https://github.com/wonsunahn/CS1541_Spring2022/tree/main/projects/1#environment-setup).
+Please refer to [Project 1 Environment Setup](https://github.com/wonsunahn/CS1541_Spring2023/tree/main/projects/1#environment-setup).
 
 ## Directory Structure and Makefile Script
 
@@ -627,4 +627,4 @@ You will do two submissions for this deliverable.
 
 # Resources
 
-Please refer to [Project 1 Resources](https://github.com/wonsunahn/CS1541_Spring2022/tree/main/projects/1#resources).
+Please refer to [Project 1 Resources](https://github.com/wonsunahn/CS1541_Spring2023/tree/main/projects/1#resources).
