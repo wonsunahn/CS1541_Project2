@@ -21,7 +21,7 @@
 Spring Semester 2023 - Project 2
 
 Please accept Project 2 on **GitHub Classroom** using the following link:
-TBD
+https://classroom.github.com/a/Ye4cob4t
 
 * DUE: Apr 28 (Friday), 2023 11:59 PM
 
