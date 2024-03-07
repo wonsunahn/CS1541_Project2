@@ -74,7 +74,7 @@ int trace_get_item(instruction **item)
 
 int write_trace(instruction item, char *fname)
 {
-	out_fd = fopen(fname, "a");
+	out_fd = fopen(fname, "ab");
 	int n_items;
 	if (is_big_endian()) {
 		(&item)->PC = my_ntohl((&item)->PC);
@@ -139,4 +139,3 @@ char* get_instruction_string(dynamic_inst dinst, Format format)
   }
   return buffer;
 }
-

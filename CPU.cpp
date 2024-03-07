@@ -16,8 +16,8 @@ unsigned int inst_number = 0;
 unsigned int mem_stall_cycles = 0;
 
 std::deque<dynamic_inst> IF, ID, WB;
-dynamic_inst EX_ALU = {0}, MEM_ALU = {0};
-dynamic_inst EX_lwsw = {0}, MEM_lwsw = {0};
+dynamic_inst EX_ALU = {{0}}, MEM_ALU = {{0}};
+dynamic_inst EX_lwsw = {{0}}, MEM_lwsw = {{0}};
 
 bool is_ALU(dynamic_inst dinst) {
   instruction inst = dinst.inst;
