@@ -39,7 +39,7 @@ bool is_older(dynamic_inst dinst1, dynamic_inst dinst2) {
 }
 
 dynamic_inst get_NOP() {
-  dynamic_inst dinst = {0};
+  dynamic_inst dinst = {{0}};
   return dinst;
 }
 
