@@ -41,9 +41,6 @@ trace_reader: trace_reader.o trace.o
 trace_generator: trace_generator.o trace.o
 	$(CC) $^ $(LOPT) -o $@
 
-%.o: %.c
-	$(CC) -c $(COPT) $<
-
 %.o: %.cpp
 	$(CC) -c $(COPT) $<
 
