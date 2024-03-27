@@ -50,14 +50,7 @@ void Cache::access(MemRequest *mreq)
   mreq->addLatency(hitDelay);
 
   if(verbose) {
-    const char *memOp;
-    switch(mreq->getMemOperation()){
-      case MemRead: memOp = "MemRead"; break;
-      case MemWrite: memOp = "MemWrite"; break;
-      case MemWriteBack: memOp = "MemWriteBack"; break;
-      default: assert(0); break;
-    }
-    printf("%s->access(%s, addr: %u, latency: %u)\n", getName().c_str(), memOp, mreq->getAddr(), mreq->getLatency());
+    printf("%s->access(%s, addr: 0x%08x, latency: %u)\n", getName().c_str(), mreq->getMemOperationString().c_str(), mreq->getAddr(), mreq->getLatency());
   }
 
   switch(mreq->getMemOperation()){

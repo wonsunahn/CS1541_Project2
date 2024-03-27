@@ -5,6 +5,7 @@
 #include "MemObj.h"
 #include "Cache.h"
 #include "DRAM.h"
+#include "WriteBuffer.h"
 
 std::map<std::string, MemObj*> MemObj::memObjs;
 
@@ -31,6 +32,8 @@ MemObj *MemObj::create(const char *name)
   if(error != NULL) g_error (error->message);
   if(!strcmp(deviceType, "dram")) {
     obj = new DRAM(name);
+  } else if(!strcmp(deviceType, "writebuffer")) {
+    obj = new WriteBuffer(name);
   } else if(!strcmp(deviceType, "cache")) {
     writePolicy = g_key_file_get_string(config->keyfile, name, "writePolicy", &error);
     if(error != NULL) g_error (error->message);
@@ -87,36 +90,30 @@ void MemObj::freeAll()
 
 void MemObj::printAll()
 {
-  printf("======================================================================\n\n");
-  printf("Printing all memory objects ... \n\n");
+  printf("\nPrinting all memory objects ... \n\n");
   std::map<std::string, MemObj*>::iterator it;
   for(it = memObjs.begin(); it != memObjs.end(); it++) {
     MemObj *obj = it->second;
     printf("%s\n", obj->toString().c_str());
   }
-  printf("======================================================================\n");
 }
 
 void MemObj::printAllStats()
 {
-  printf("======================================================================\n\n");
-  printf("Printing all memory stats ... \n\n");
+  printf("\nPrinting all memory stats ... \n\n");
   std::map<std::string, MemObj*>::iterator it;
   for(it = memObjs.begin(); it != memObjs.end(); it++) {
     MemObj *obj = it->second;
     printf("%s\n", obj->getStatString().c_str());
   }
-  printf("\n======================================================================\n");
 }
 
 void MemObj::printAllContents()
 {
-  printf("======================================================================\n");
-  printf("Printing all cache contents ...\n");
+  printf("\nPrinting all cache contents ...\n");
   std::map<std::string, MemObj*>::iterator it;
   for(it = memObjs.begin(); it != memObjs.end(); it++) {
     MemObj *obj = it->second;
     printf("%s", obj->getContentString().c_str());
   }
-  printf("======================================================================\n");
 }

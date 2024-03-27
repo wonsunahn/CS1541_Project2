@@ -46,6 +46,7 @@ dynamic_inst get_NOP() {
 void handle_memory_access(dynamic_inst dinst, bool isDataAccess)
 {
   if (verbose) {/* print cycles spent for this memory access if verbose=1 */
+    printf("======================================================================\n");
     if (isDataAccess) {
       printf("[MEM CYCLE: %d] %s\n", cycle_number, get_instruction_string(dinst, ADDR_ONLY));
     } else {
@@ -69,24 +70,18 @@ void handle_memory_access(dynamic_inst dinst, bool isDataAccess)
   }
   assert(mreq->getLatency() > 0);
 
-  int stall_cycles;
-  if (isDataAccess && dinst.inst.type == ti_STORE) {
-    // For store memory accesses, we assume we have an infinitely sized
-    // write buffer so that all pending stores go that buffer.  So even when
-    // the store request has long latency, it will not cause stalls.
-    stall_cycles = 0;
-  } else {
-    assert(!isDataAccess || dinst.inst.type == ti_LOAD);
-    // One cycle delay is already accounted for.  So subtract that.
-    stall_cycles = mreq->getLatency() - 1;
-  }
+  // One cycle delay is already accounted for.  So subtract that.
+  int stall_cycles = mreq->getLatency() - 1;
   // Delete memory request.  Remember C++ does not have garbage collection!
   delete mreq;
 
   if (verbose) {/* print cycles spent for this mem instruction if verbose=1 */
-    printf("CYCLE: %d -> %d\n", cycle_number, cycle_number + stall_cycles);
     if (debug) {/* print cache contents if debug=1 */
       MemObj::printAllContents();
+    }
+    if(stall_cycles > 0) {
+      printf("\nFast forwarding cycle: %d -> %d\n", cycle_number, cycle_number + stall_cycles);
+      printf("======================================================================\n");
     }
   }
 

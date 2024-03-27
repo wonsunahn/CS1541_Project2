@@ -131,10 +131,10 @@ char* get_instruction_string(dynamic_inst dinst, Format format)
       snprintf(buffer, 100, "%7s: (Seq: %8d)(Regs: %3d, %3d, %3d)", name, dinst.seq, inst.dReg, inst.sReg_a, inst.sReg_b);
       break;
     case LONG_FORM:
-      snprintf(buffer, 100, "%7s: (Seq: %8d)(Regs: %3d, %3d, %3d)(Addr: %u)(PC: %u)", name, dinst.seq, inst.dReg, inst.sReg_a, inst.sReg_b, inst.Addr, inst.PC);
+      snprintf(buffer, 100, "%7s: (Seq: %d)(Regs: %3d, %3d, %3d)(Addr: 0x%08x)(PC: 0x%08x)", name, dinst.seq, inst.dReg, inst.sReg_a, inst.sReg_b, inst.Addr, inst.PC);
       break;
     case ADDR_ONLY:
-      snprintf(buffer, 100, "%s: (Seq: %8d)(Addr: %u)(PC: %u)", name, dinst.seq, inst.Addr, inst.PC);
+      snprintf(buffer, 100, "%s: (Seq: %d)(Addr: 0x%08x)(PC: 0x%08x)", name, dinst.seq, inst.Addr, inst.PC);
       break;
   }
   return buffer;

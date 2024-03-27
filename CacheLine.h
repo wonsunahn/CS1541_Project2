@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <string>
+#include <sstream>
+#include <iomanip>
 
 /** @brief A cache line (a.k.a cache block).
  *
@@ -48,7 +50,9 @@ class CacheLine {
 
     /** Returns string representation of the cache block. */
     std::string toString() {
-      return "tag=" + std::to_string(tag) + ":valid=" + std::to_string(valid) + ":dirty=" + std::to_string(dirty) + ":age=" + std::to_string(age);
+      std::stringstream tagInHex;
+      tagInHex << "0x" << std::hex << tag;
+      return "tag=" + tagInHex.str() + ":valid=" + std::to_string(valid) + ":dirty=" + std::to_string(dirty) + ":age=" + std::to_string(age);
     }
 };
 

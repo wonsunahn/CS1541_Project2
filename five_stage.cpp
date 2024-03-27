@@ -12,7 +12,6 @@
 #include <getopt.h>
 #include <assert.h>
 #include <inttypes.h>
-#include <arpa/inet.h>
 #include "CPU.h"
 #include "trace.h"
 #include "MemObj.h"

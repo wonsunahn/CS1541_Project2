@@ -1,6 +1,18 @@
-TARGETS = five_stage trace_reader trace_generator
+ifeq ($(OS),Windows_NT)
+  EXE_SUFFIX=.exe
+else
+  UNAME_S := $(shell uname -s)
+  ifeq ($(UNAME_S),Linux)
+    EXE_SUFFIX=.linux
+  endif
+  ifeq ($(UNAME_S),Darwin)
+    EXE_SUFFIX=.mac
+  endif
+endif
 
-SHORT_TRACES_DIR = /afs/cs.pitt.edu/courses/1541/short_traces
+TARGETS = five_stage$(EXE_SUFFIX) trace_reader$(EXE_SUFFIX) trace_generator$(EXE_SUFFIX)
+
+SHORT_TRACES_DIR = plot_traces
 GNUPLOT = /afs/cs.pitt.edu/courses/1541/gnuplot-5.2.8/bin/gnuplot
 
 CONFS = $(wildcard confs/*.conf)
@@ -11,8 +23,8 @@ DIFFS := $(foreach conf,$(CONFS),$(foreach trace, $(TRACES), diffs/$(trace:trace
 
 SHORT_TRACES = $(wildcard $(SHORT_TRACES_DIR)/*.tr)
 PLOT_CONFS = $(wildcard plot_confs/*.conf)
-PLOT_OUTPUTS := $(foreach conf,$(PLOT_CONFS),$(foreach trace, $(SHORT_TRACES), plots/$(trace:$(SHORT_TRACES_DIR)/%.tr=%).$(conf:plot_confs/%.conf=%).out))
-PLOT_OUTPUTS_SOLUTION := $(foreach conf,$(PLOT_CONFS),$(foreach trace, $(SHORT_TRACES), plots_solution/$(trace:$(SHORT_TRACES_DIR)/%.tr=%).$(conf:plot_confs/%.conf=%).out))
+PLOT_OUTPUTS := $(foreach conf,$(PLOT_CONFS),$(foreach trace, $(SHORT_TRACES), plot_outputs/$(trace:$(SHORT_TRACES_DIR)/%.tr=%).$(conf:plot_confs/%.conf=%).out))
+PLOT_OUTPUTS_SOLUTION := $(foreach conf,$(PLOT_CONFS),$(foreach trace, $(SHORT_TRACES), plot_outputs_solution/$(trace:$(SHORT_TRACES_DIR)/%.tr=%).$(conf:plot_confs/%.conf=%).out))
 
 COPT = -g -Wall -Wno-format-security -std=c++11 `pkg-config --cflags glib-2.0`
 LOPT = `pkg-config --libs glib-2.0`
@@ -21,37 +33,37 @@ CC = g++
 all: build run
 build: $(TARGETS)
 run: $(OUTPUTS) $(OUTPUTS_SOLUTION) $(DIFFS)
-plots: IPC.pdf IPC_solution.pdf
+plots: $(PLOT_OUTPUTS) $(PLOT_OUTPUTS_SOLUTION)
 
 five_stage.o: config.h CPU.h MemObj.h MemRequest.h
 trace_reader.o: CPU.h trace.h
 trace_generator.o: CPU.h trace.h
 config.o: config.h
-CPU.o: config.h trace.h CPU.h
+CPU.o: config.h trace.h CPU.h Cache.h CacheCore.h CacheLine.h Counter.h DRAM.h WriteBuffer.h MemObj.h MemRequest.h log2i.h
 Cache.o: config.h Cache.h CacheCore.h CacheLine.h Counter.h MemObj.h MemRequest.h log2i.h
 CacheCore.o: CacheCore.h CacheLine.h log2i.h
-MemObj.o: Cache.h CacheCore.h CacheLine.h Counter.h DRAM.h MemObj.h MemRequest.h log2i.h
+MemObj.o: Cache.h CacheCore.h CacheLine.h Counter.h DRAM.h WriteBuffer.h MemObj.h MemRequest.h log2i.h
 
-five_stage: five_stage.o config.o CPU.o trace.o CacheCore.o Cache.o MemObj.o log2i.o
+five_stage$(EXE_SUFFIX): five_stage.o config.o CPU.o trace.o CacheCore.o Cache.o MemObj.o log2i.o
 	$(CC) $^ $(LOPT) -o $@
 
-trace_reader: trace_reader.o trace.o
+trace_reader$(EXE_SUFFIX): trace_reader.o trace.o
 	$(CC) $^ $(LOPT) -o $@
 
-trace_generator: trace_generator.o trace.o
+trace_generator$(EXE_SUFFIX): trace_generator.o trace.o
 	$(CC) $^ $(LOPT) -o $@
 
 %.o: %.cpp
 	$(CC) -c $(COPT) $<
 
 define run_rules
-outputs/$(1:traces/%.tr=%).$(2:confs/%.conf=%).out: five_stage $(1) $(2)
-	@echo "Running ./five_stage -t $(1) -c $(2) -d > $$@"
-	-@./five_stage -t $(1) -c $(2) -d > $$@
+outputs/$(1:traces/%.tr=%).$(2:confs/%.conf=%).out: five_stage$(EXE_SUFFIX) $(1) $(2)
+	@echo "Running ./five_stage$(EXE_SUFFIX) -t $(1) -c $(2) -d > $$@"
+	-@./five_stage$(EXE_SUFFIX) -t $(1) -c $(2) -d > $$@
 
-outputs_solution/$(1:traces/%.tr=%).$(2:confs/%.conf=%).out: five_stage_solution $(1) $(2)
-	@echo "Running ./five_stage_solution -t $(1) -c $(2) -d > $$@"
-	-@./five_stage_solution -t $(1) -c $(2) -d > $$@
+outputs_solution/$(1:traces/%.tr=%).$(2:confs/%.conf=%).out: five_stage_solution$(EXE_SUFFIX) $(1) $(2)
+	@echo "Running ./five_stage_solution$(EXE_SUFFIX) -t $(1) -c $(2) -d > $$@"
+	-@./five_stage_solution$(EXE_SUFFIX) -t $(1) -c $(2) -d > $$@
 endef
 
 $(foreach trace,$(TRACES),$(foreach conf, $(CONFS), $(eval $(call run_rules,$(trace),$(conf)))))
@@ -65,13 +77,13 @@ endef
 $(foreach trace,$(TRACES),$(foreach conf, $(CONFS), $(eval $(call diff_rules,$(trace),$(conf)))))
 
 define plot_rules
-plots/$(1:$(SHORT_TRACES_DIR)/%.tr=%).$(2:plot_confs/%.conf=%).out: five_stage $(1) $(2)
-	@echo "Running ./five_stage -t $(1) -c $(2) > $$@"
-	-@./five_stage -t $(1) -c $(2) > $$@
+plot_outputs/$(1:$(SHORT_TRACES_DIR)/%.tr=%).$(2:plot_confs/%.conf=%).out: five_stage$(EXE_SUFFIX) $(1) $(2)
+	@echo "Running ./five_stage$(EXE_SUFFIX) -t $(1) -c $(2) > $$@"
+	-@./five_stage$(EXE_SUFFIX) -t $(1) -c $(2) > $$@
 
-plots_solution/$(1:$(SHORT_TRACES_DIR)/%.tr=%).$(2:plot_confs/%.conf=%).out: five_stage_solution $(1) $(2)
-	@echo "Running ./five_stage_solution -t $(1) -c $(2) > $$@"
-	-@./five_stage_solution -t $(1) -c $(2) > $$@
+plot_outputs_solution/$(1:$(SHORT_TRACES_DIR)/%.tr=%).$(2:plot_confs/%.conf=%).out: five_stage_solution$(EXE_SUFFIX) $(1) $(2)
+	@echo "Running ./five_stage_solution$(EXE_SUFFIX) -t $(1) -c $(2) > $$@"
+	-@./five_stage_solution$(EXE_SUFFIX) -t $(1) -c $(2) > $$@
 endef
 
 $(foreach trace,$(SHORT_TRACES),$(foreach conf, $(PLOT_CONFS), $(eval $(call plot_rules,$(trace),$(conf)))))
@@ -80,10 +92,10 @@ $(foreach trace,$(SHORT_TRACES),$(foreach conf, $(PLOT_CONFS), $(eval $(call plo
 	$(GNUPLOT) -e "inputFile='$<'" -e "outputFile='$@'" generate_plot.plt
 
 IPC.dat: $(PLOT_OUTPUTS)
-	python generate_plot.py -i plots -o $@
+	python generate_plot.py -i plot_outputs -o $@
 
 IPC_solution.dat: $(PLOT_OUTPUTS_SOLUTION)
-	python generate_plot.py -i plots_solution -o $@
+	python generate_plot.py -i plot_outputs_solution -o $@
 
 
 clean:
