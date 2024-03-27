@@ -4,9 +4,13 @@ else
   UNAME_S := $(shell uname -s)
   ifeq ($(UNAME_S),Linux)
     EXE_SUFFIX=.linux
+	CASAN = -fsanitize=address
+    LASAN = -fsanitize=address
   endif
   ifeq ($(UNAME_S),Darwin)
     EXE_SUFFIX=.mac
+	CASAN = -fsanitize=address
+    LASAN = -fsanitize=address
   endif
 endif
 
@@ -26,8 +30,8 @@ PLOT_CONFS = $(wildcard plot_confs/*.conf)
 PLOT_OUTPUTS := $(foreach conf,$(PLOT_CONFS),$(foreach trace, $(SHORT_TRACES), plot_outputs/$(trace:$(SHORT_TRACES_DIR)/%.tr=%).$(conf:plot_confs/%.conf=%).out))
 PLOT_OUTPUTS_SOLUTION := $(foreach conf,$(PLOT_CONFS),$(foreach trace, $(SHORT_TRACES), plot_outputs_solution/$(trace:$(SHORT_TRACES_DIR)/%.tr=%).$(conf:plot_confs/%.conf=%).out))
 
-COPT = -g -Wall -Wno-format-security -std=c++11 `pkg-config --cflags glib-2.0`
-LOPT = `pkg-config --libs glib-2.0`
+COPT = -g -Wall $(CASAN) -Wno-format-security -std=c++11 `pkg-config --cflags glib-2.0`
+LOPT = -g $(LASAN) `pkg-config --libs glib-2.0`
 CC = g++
 
 all: build run
