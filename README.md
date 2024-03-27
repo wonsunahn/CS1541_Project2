@@ -20,10 +20,9 @@
 # CS/COE 1541 - Introduction to Computer Architecture
 Spring Semester 2023 - Project 2
 
-Please accept Project 2 on **GitHub Classroom** using the following link:
-https://classroom.github.com/a/Ye4cob4t
+Please accept Project 2 on **GitHub Classroom** using the following link: TBD
 
-* DUE: Apr 28 (Friday), 2023 11:59 PM
+* DUE: Apr 26 (Friday), 2024 11:59 PM
 
 # Introduction
 
@@ -52,11 +51,17 @@ consumption to memory.  The L1 cache is configured as either a write-through
 work in exactly the same way as explained during the lecture.  Please review
 the lecture if you don't remember.
 
-Each cache has a dedicated write-buffer for write-back memory requests.  The
-processor pipeline also has a write-buffer to maintain pending stores with long
-delays.  We are going to assume for simplicity that all the write-buffers are
+The processor pipeline has a write-buffer to maintain pending stores.  The
+write-buffer allows store instructions which may potentially suffer a long
+delay to commit immediately as long as there is space in the write-buffer.
+While the store is pending, load instructions that hit on the pending store can
+return immediately as well.  The write-buffer is assumed to be fully
+associative (as is true in most processors).
+
+Each cache also has a dedicated write-buffer for write-back memory requests.
+We are going to assume for simplicity that all cache write-buffers are
 infinitely sized.  That means that the processor will never suffer stalls due
-to write-backs of dirty blocks or store instructions.
+to write-backs of dirty blocks.
 
 Also, each cache is a non-blocking cache, meaning that while the cache is
 waiting on a cache miss, the cache can continue servicing other memory
@@ -73,7 +78,10 @@ of outstanding misses and never have to block.
 
 ## Environment Setup
 
-Please refer to [Project 1 Environment Setup](https://github.com/wonsunahn/CS1541_Spring2023/tree/main/projects/1#environment-setup).
+Please refer to [Project 1 Environment
+Setup](https://github.com/wonsunahn/CS1541_Project1/#creating-build-environment-on-local-machine)
+on how to set up your local VSCode developement environment.  If you already
+did the setup, you don't need to do anything in addition.
 
 ## Directory Structure and Makefile Script
 
@@ -86,17 +94,18 @@ Cache.h / Cache.cpp : Contains classes for a write-back cache and a write-throug
 
 # Source code newly added as part of Project 2.
 CacheLine.h : A cache line (a.k.a. a cache block) with tag, valid bit, dirty bit, and age.
-Counter.h : A counter, pure and simple.
+Counter.h : A counter for statistics reporting.
 DRAM.h : DRAM memory, which mostly acts like a cache that always hits.
 MemObj.cpp / MemObj.h : Parent class for all memory objects (caches and DRAM).
 MemRequest.cpp / MemRequest.h : Memory request that gets passed around memory objects.
+WriteBuffer.h : Write buffer attached to the processor pipeline
 log2i.cpp / log2i.h : Contains the log2i function, a log2 for integers.
 
 # Directory newly added as part of Project 2.
 doc/ : Directory where Doxygen documentation of the source code is kept.
 
 # Source code inherited from Project 1 with small modifications.
-five_stage_solution : **Reference solution binary** for the project.
+five_stage_solution(.linux/.exe/.mac) : **Reference solution** binaries for each OS.
 Makefile : The build script for the Make tool.
 config.c / config.h : Functions used to parse and read in the processor configuration file.
 CPU.c / CPU.h : Implements the five stages of the processor pipeline, modified to consider memory stalls.
@@ -109,8 +118,8 @@ diffs/ : Directory with diffs between outputs/ and outputs_solution/ are stored.
 outputs/ : Directory where outputs after running five_stage are stored.
 outputs_solution/ : Directory where outputs produced by five_stage_solution are stored.
 plot_confs/ : Directory where processor configurations for the plot generation are.
-plots/ : Directory where outputs after running five_stage are stored for plot generation.
-plots_solution/ : Directory where outputs after running five_stage_solution are stored for plot generation.
+plot_outputs/ : Directory where outputs after running five_stage are stored for plot generation.
+plots_outputs_solution/ : Directory where outputs after running five_stage_solution are stored for plot generation.
 traces/ : Directory where instruction trace files used to test the simulator are stored.
 ```
 
@@ -147,19 +156,20 @@ identical to Project 1.
 
 As before five_stage.c reads in a trace file (a binary file containing a
 sequence of executed instructions) and simulates the processor described above.
-But since the implementation is as of now incomplete, the L1 and L2 caches will
-always miss and you will always go to DRAM memory.  Your goal is to complete
-the cache implementation so that the accesses sometimes hit in the caches.
+But since the cache implementation is as of now incomplete, the L1 and L2
+caches will always miss and you will always go to DRAM memory (unless you hit
+in the write-buffer, of course).  Your goal is to complete the cache
+implementation so that the accesses hit in the caches when appropriate.
 
 ### Solution Binary
 
 Let's start by looking at five_stage_solution (the solution binary) to see how
 the output *should* look like.
 
-Try doing the following:
+Try doing the following, choosing the file extension that is appropriate for your OS:
 
 ```
-$ ./five_stage_solution -t traces/two_loads.tr -c confs/l1-wb.conf -d
+./five_stage_solution(.linux/.exe/.mac) -t traces/two_stores.tr -c confs/l1-wb.conf -d
 ```
 
 Or, alternatively open the 'outputs_solution/two_stores.l1-wb.out' file after doing 'make'.
@@ -168,9 +178,8 @@ And you should see the following output at the beginning:
 
 ```
 Memory system setup successful.
-======================================================================
 
-Printing all memory objects ...
+Printing all memory objects ... 
 
 [DL1Cache]
 device type = cache
@@ -203,6 +212,10 @@ lower level = Memory
 device type = dram
 hit time = 100
 
+[WriteBuffer]
+device type = dram
+hit time = 1
+
 ======================================================================
 ...
 ```
@@ -214,18 +227,21 @@ to be 'WB' or write-back.
 
 Next, you see the following output:
 ```
-[IF CYCLE: 1] STORE: (Seq:        1)(Addr: 39168)(PC: 0)
-IL1Cache->access(MemRead, addr: 0, latency: 2)
-L2Cache->access(MemRead, addr: 0, latency: 12)
-Memory->access(MemRead, addr: 0, latency: 112)
-CYCLE: 1 -> 112
 ======================================================================
+[IF CYCLE: 1] STORE: (Seq: 1)(Addr: 0x00009900)(PC: 0x00000000)
+IL1Cache->access(MemRead, addr: 0x00000000, latency: 2)
+L2Cache->access(MemRead, addr: 0x00000000, latency: 12)
+Memory->access(MemRead, addr: 0x00000000, latency: 112)
+
 Printing all cache contents ...
 [DL1Cache]
 [IL1Cache]
-(0, 0) tag=0:valid=1:dirty=0:age=0
+(0, 0) tag=0x0:valid=1:dirty=0:age=0
 [L2Cache]
-(0, 0) tag=0:valid=1:dirty=0:age=0
+(0, 0) tag=0x0:valid=1:dirty=0:age=0
+[WriteBuffer]
+
+Fast forwarding cycle: 1 -> 112
 ======================================================================
 ```
 
@@ -235,118 +251,147 @@ the instruction L1 cache.  Since initially the cache is empty, it will go down
 all the way to memory to fetch that cache block.  You can see that at each
 level of the memory hierarchy, latency increases equal to the configured hit
 time parameter for that memory object.  When the memory request returns, the
-current CYCLE is incremented by 'latency - 1' (1 -> 112).  One is subtracted
-because one cycle is the default latency for the MEM stage in the pipeline and
-anything beyond that is what causes a stall.
+current cycle is fast forwarded by the number of cycles that the CPU stalls
+waiting for the memory request (1 -> 112).  Since the CPU is going to be
+stalling and doing nothing for the duration of the request, it makes sense to
+fast forward to the point where the request returns.  The number of stall
+cycles is calculated as 'latency - 1' (112 - 1).  One is subtracted because one
+cycle is the latency for a pipeline stage and anything beyond that is what
+causes a stall.
 
 Next, the cache contents of all the caches are dumped to output.  Only valid
 blocks are dumped.  The block string representation is interpreted as follows:
 
 ```
-(0, 0) tag=0:valid=1:dirty=0:age=0
+(0, 0) tag=0x0:valid=1:dirty=0:age=0
 ```
 
 This means that this cache block is in row 0, column 0 of the cache block
 array.  Row is the set index and column is the index of the cache block within
 the set.  Please use the cache visualizer under resources/cache_demo/ of the
-repository to visualize the rows and columns.  The rest is the various metadata
-for that cache block.
+course repository to visualize the rows and columns.  The rest is the various
+metadata for that cache block.
 
 Next, you see the following output:
 ```
-[IF CYCLE: 113] STORE: (Seq:        2)(Addr: 39200)(PC: 4)
-IL1Cache->access(MemRead, addr: 4, latency: 2)
-CYCLE: 113 -> 114
 ======================================================================
+[IF CYCLE: 113] STORE: (Seq: 2)(Addr: 0x00009920)(PC: 0x00000004)
+IL1Cache->access(MemRead, addr: 0x00000004, latency: 2)
+
 Printing all cache contents ...
 [DL1Cache]
 [IL1Cache]
-(0, 0) tag=0:valid=1:dirty=0:age=0
+(0, 0) tag=0x0:valid=1:dirty=0:age=0
 [L2Cache]
-(0, 0) tag=0:valid=1:dirty=0:age=0
+(0, 0) tag=0x0:valid=1:dirty=0:age=0
+[WriteBuffer]
+
+Fast forwarding cycle: 113 -> 114
 ======================================================================
 ```
 
 You see an instruction fetch for the next PC: 4.  Due to spatial locality, this
 read to the instruction L1 cache hits.  You can see that this time, the memory
 request just accesses the instruction L1 cache and immediately returns.  The
-cache contents remain the same since no new blocks are allocated.
+cache contents remain the same since no new blocks are allocated.  The current
+cycle is fast forwarded by one cycle since the L1 cache access latency was 2.
 
 Next, you see the following output:
 ```
-[MEM CYCLE: 116] STORE: (Seq:        1)(Addr: 39168)(PC: 0)
-DL1Cache->access(MemWrite, addr: 39168, latency: 2)
-L2Cache->access(MemRead, addr: 39168, latency: 12)
-Memory->access(MemRead, addr: 39168, latency: 112)
-CYCLE: 116 -> 116
 ======================================================================
+[MEM CYCLE: 116] STORE: (Seq: 1)(Addr: 0x00009900)(PC: 0x00000000)
+WriteBuffer->access(MemWrite, addr: 0x00009900, latency: 1)
+DL1Cache->access(MemWrite, addr: 0x00009900, latency: 1)
+L2Cache->access(MemRead, addr: 0x00009900, latency: 1)
+Memory->access(MemRead, addr: 0x00009900, latency: 1)
+
 Printing all cache contents ...
 [DL1Cache]
-(100, 0) tag=4:valid=1:dirty=1:age=0
+(100, 0) tag=0x4:valid=1:dirty=1:age=0
 [IL1Cache]
-(0, 0) tag=0:valid=1:dirty=0:age=0
+(0, 0) tag=0x0:valid=1:dirty=0:age=0
 [L2Cache]
-(0, 0) tag=0:valid=1:dirty=0:age=0
-(25, 0) tag=9:valid=1:dirty=0:age=0
+(0, 0) tag=0x0:valid=1:dirty=0:age=0
+(36, 0) tag=0x9:valid=1:dirty=0:age=0
+[WriteBuffer]
+tag=0x9900:pendingUntil:228
 ======================================================================
 ```
 
 You see the first STORE instruction performing the write access at the MEM
-stage with addr: 39168.  It misses in the data L1 cache, which means that a new
-block must be allocated in the L1 and the data for the block read in from lower
-memory.  So the MemWrite request is now mutated into a MemRead request to
-access the L2 cache.  It misses there again and you have to go all the way
-memory.  Now note the line CYCLE: 116 -> 116.  We don't add stall cycles for
-the store instruction because we assumed we have an infinitely sized write
-buffer.  So conceptually, all of this activity is happening off the critical
-path as the processor is executing subsequent instructions.
+stage with addr: 0x00009900.  It first gets registered as a pending store in
+the write-buffer and then the MemWrite request is propagated down the memory
+hierarchy.  It misses in the data L1 cache, which means that a new block must
+be allocated in the L1 and the data for the block read in from lower memory.
+So the MemWrite request is now mutated into a MemRead request to access the L2
+cache.  It misses there again and you have to go all the way DRAM memory.  
+
+Now note that the latency of the memory request always shows as 1 even though
+it has to go all the way to memory.  This is because the store is immediately
+committed as pending in the write-buffer without any stalling, and the write
+request performs behind the scenes.  The write-buffer entry will be released at
+cycle 228 as indicated in the entry:
+
+```
+tag=0x9900:pendingUntil:228
+```
+
+That is also why there is no fast forwarding that needs to happen here.
 
 Looking at the cache contents, we see the new cache block read into the L2 cache:
 
 ```
-(25, 0) tag=9:valid=1:dirty=0:age=0
+(36, 0) tag=0x9:valid=1:dirty=0:age=0
 ```
 
-It's clean because it hasn't been modified.  We also see the new cache block in the IL1 cache:
+It's clean because it hasn't been modified.  We also see the new cache block in the DL1 cache:
 
 ```
-(100, 0) tag=4:valid=1:dirty=1:age=0
+(100, 0) tag=0x4:valid=1:dirty=1:age=0
 ```
 
 This block is dirty because it was written to with the store data.
 
 Next, you see the following output:
+
 ```
-[MEM CYCLE: 117] STORE: (Seq:        2)(Addr: 39200)(PC: 4)
-DL1Cache->access(MemWrite, addr: 39200, latency: 2)
-CYCLE: 117 -> 117
 ======================================================================
+[MEM CYCLE: 117] STORE: (Seq: 2)(Addr: 0x00009920)(PC: 0x00000004)
+WriteBuffer->access(MemWrite, addr: 0x00009920, latency: 1)
+DL1Cache->access(MemWrite, addr: 0x00009920, latency: 1)
+
 Printing all cache contents ...
 [DL1Cache]
-(100, 0) tag=4:valid=1:dirty=1:age=0
+(100, 0) tag=0x4:valid=1:dirty=1:age=0
 [IL1Cache]
-(0, 0) tag=0:valid=1:dirty=0:age=0
+(0, 0) tag=0x0:valid=1:dirty=0:age=0
 [L2Cache]
-(0, 0) tag=0:valid=1:dirty=0:age=0
-(25, 0) tag=9:valid=1:dirty=0:age=0
+(0, 0) tag=0x0:valid=1:dirty=0:age=0
+(36, 0) tag=0x9:valid=1:dirty=0:age=0
+[WriteBuffer]
+tag=0x9900:pendingUntil:228
+tag=0x9920:pendingUntil:119
 ======================================================================
 ```
 
-This is the MEM stage for the second store to addr: 39200.  The previous
-address 39168 and 39200 are on the same cache block so the data L1 cache hit.
+This is the MEM stage for the second store to addr: 0x00009920.  The previous
+address 0x00009900 and 0x00009920 are on the same cache block so the data L1
+cache hit.  Again, the store is registered as pending in the write-buffer so no
+delay is incurred.  Note that for new pending store, the store is only pending
+until cycle 119 (2 cycles later) as the store hits in the L1 cache.
 
 Next, you see a summary of statistics for each memory object:
 ```
-======================================================================
-
-Printing all memory stats ...
+Printing all memory stats ... 
 
 DL1Cache:readHits=0:readMisses=0:writeHits=1:writeMisses=1:writeBacks=0
 IL1Cache:readHits=1:readMisses=1:writeHits=0:writeMisses=0:writeBacks=0
 L2Cache:readHits=0:readMisses=2:writeHits=0:writeMisses=0:writeBacks=0
 Memory:readHits=2:writeHits=0
-
-======================================================================
+WriteBuffer:readHits=0:readMisses=0:writeHits=0:writeMisses=2:writeOverflows=0
++ Memory stall cycles : 112
++ Number of cycles : 118
++ IPC (Instructions Per Cycle) : 0.0169
 ```
 
 There are a few invariants here:
@@ -372,7 +417,7 @@ always miss and you will always go to DRAM memory.  Let's look at five_stage
 Try doing the following:
 
 ```
-$ ./five_stage -t traces/two_loads.tr -c confs/l1-wb.conf -d
+./five_stage(.linux/.exe/.mac) -t traces/two_stores.tr -c confs/l1-wb.conf -d
 ```
 
 Or, alternatively open the 'outputs/two_stores.l1-wb.out' file after doing 'make'.
@@ -381,27 +426,32 @@ And you should see the following output after the preamble in the beginning:
 
 ```
 ======================================================================
-[IF CYCLE: 1] LOAD: (Seq:        1)(Addr: 39168)(PC: 0)
-IL1Cache->access(MemRead, addr: 0, latency: 2)
-L2Cache->access(MemRead, addr: 0, latency: 12)
-Memory->access(MemRead, addr: 0, latency: 112)
-CYCLE: 1 -> 112
-======================================================================
+[IF CYCLE: 1] STORE: (Seq: 1)(Addr: 0x00009900)(PC: 0x00000000)
+IL1Cache->access(MemRead, addr: 0x00000000, latency: 2)
+L2Cache->access(MemRead, addr: 0x00000000, latency: 12)
+Memory->access(MemRead, addr: 0x00000000, latency: 112)
+
 Printing all cache contents ...
 [DL1Cache]
 [IL1Cache]
 [L2Cache]
+[WriteBuffer]
+
+Fast forwarding cycle: 1 -> 112
 ======================================================================
-[IF CYCLE: 113] LOAD: (Seq:        2)(Addr: 39200)(PC: 4)
-IL1Cache->access(MemRead, addr: 4, latency: 2)
-L2Cache->access(MemRead, addr: 4, latency: 12)
-Memory->access(MemRead, addr: 4, latency: 112)
-CYCLE: 113 -> 224
 ======================================================================
+[IF CYCLE: 113] STORE: (Seq: 2)(Addr: 0x00009920)(PC: 0x00000004)
+IL1Cache->access(MemRead, addr: 0x00000004, latency: 2)
+L2Cache->access(MemRead, addr: 0x00000004, latency: 12)
+Memory->access(MemRead, addr: 0x00000004, latency: 112)
+
 Printing all cache contents ...
 [DL1Cache]
 [IL1Cache]
 [L2Cache]
+[WriteBuffer]
+
+Fast forwarding cycle: 113 -> 224
 ======================================================================
 ```
 
@@ -428,7 +478,7 @@ Here is how the l1-wb.conf file looks like:
 [pipeline]
 width         = 1
 instSource    = IL1Cache
-dataSource    = DL1Cache
+dataSource    = WriteBuffer
 
 # Instruction L1 cache
 [IL1Cache]
@@ -438,8 +488,15 @@ assoc         = 1
 bsize         = 64
 writePolicy   = WB
 replPolicy    = LRU
-hitDelay      = 2
+hitDelay      = 2 
 lowerLevel    = L2Cache
+
+# Write buffer
+[WriteBuffer]
+deviceType    = writebuffer
+size          = 3               # 3 entries
+hitDelay      = 1 
+lowerLevel    = DL1Cache
 
 # Data L1 cache
 [DL1Cache]
@@ -475,22 +532,28 @@ hitDelay      = 100
 lowerLevel    = null
 ```
 
-Here is what each of those items mean:
+Here is what some of those items mean:
 
 [pipeline]
 * width = 1 : It is a 1-wide processor.
 * instSource = IL1Cache : The pipeline uses IL1Cache as its data source.
-* dataSource = DL1Cache : The pipeline uses DL1cache as its data source.
+* dataSource = WriteBuffer : The pipeline uses WriteBuffer as its data source.
+
+[WriteBuffer]
+* deviceType    = writebuffer : The device type is a write-buffer.
+* size          = 3 : Capacity is 3 entries.
+* hitDelay      = 1 : Delay required to access the write-buffer is 1 cycle. 
+* lowerLevel    = DL1Cache : The memory object below this level is DL1Cache.
 
 [IL1Cache]
-* deviceType = cache : The device is a cache (not dram)
-* size = 8192 : Capacity is 8 KB
-* assoc = 1 : Associativity is 1-way (a.k.a. direct-mapped)
-* bsize = 64 : Cache block size is 64 bytes
-* writePolicy = WB : Write policy is write-back (not write-through)
-* replPolicy = LRU : Replacement policy is LRU (this is the only option)
-* hitDelay = 2 : Delay required to access to cache is 2 cycles
-* lowerLevel = L2Cache : The memory object below this level is L2Cache
+* deviceType = cache : The device type is a cache.
+* size = 8192 : Capacity is 8 KB.
+* assoc = 1 : Associativity is 1-way (a.k.a. direct-mapped).
+* bsize = 64 : Cache block size is 64 bytes.
+* writePolicy = WB : Write policy is write-back (not write-through).
+* replPolicy = LRU : Replacement policy is LRU (this is the only option).
+* hitDelay = 2 : Delay required to access the cache is 2 cycles.
+* lowerLevel = L2Cache : The memory object below this level is L2Cache.
 
 The instSource, dataSource, and lowerLevel parameters name a memory object by
 the section name that defines that object.  In this way, the memory hierarchy
@@ -627,4 +690,6 @@ You will do two submissions for this deliverable.
 
 # Resources
 
-Please refer to [Project 1 Resources](https://github.com/wonsunahn/CS1541_Spring2023/tree/main/projects/1#resources).
+Please refer to [Project 1 Resources](https://github.com/wonsunahn/CS1541_Project1/#resources) on how to
+test and debug your program.
+
