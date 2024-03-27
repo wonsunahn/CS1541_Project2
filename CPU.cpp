@@ -81,8 +81,8 @@ void handle_memory_access(dynamic_inst dinst, bool isDataAccess)
     }
     if(stall_cycles > 0) {
       printf("\nFast forwarding cycle: %d -> %d\n", cycle_number, cycle_number + stall_cycles);
-      printf("======================================================================\n");
     }
+    printf("======================================================================\n");
   }
 
   cycle_number += stall_cycles;
