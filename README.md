@@ -81,7 +81,10 @@ of outstanding misses and never have to block.
 Please refer to [Project 1 Environment
 Setup](https://github.com/wonsunahn/CS1541_Project1/#creating-build-environment-on-local-machine)
 on how to set up your local VSCode developement environment.  If you already
-did the setup, you don't need to do anything in addition.
+did the setup, you don't need to do anything in addition.  If you have trouble
+with the setup, please feel free to use GitHub codespaces that fires up a
+Docker container VSCode development environment pre-configured with the
+necessary packages.
 
 ## Directory Structure and Makefile Script
 
