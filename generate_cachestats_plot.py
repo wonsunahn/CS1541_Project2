@@ -39,7 +39,7 @@ def getMissRate(reportRoot, reportName, cacheName):
       break
   f.close
   if readHits + writeHits + readMisses + writeMisses > 0:
-    return float(readHits + writeHits) / float(readHits + writeHits + readMisses + writeMisses)
+    return float(readMisses + writeMisses) / float(readHits + writeHits + readMisses + writeMisses)
   else:
     return 0
 
