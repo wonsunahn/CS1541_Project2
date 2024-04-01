@@ -13,7 +13,7 @@
 - [Your Tasks](#your-tasks)
   * [Task 1: Implement the Cache Block Array](#task-1-implement-the-cache-block-array)
   * [Task 2: Implement the Write-back and Write-through Caches](#task-2-implement-the-write-back-and-write-through-caches)
-  * [Source Code](#source-code)
+    + [Source Code](#source-code)
   * [Task 3: Analyze Performance Data for Arrays and Linked-lists](#task-3-analyze-performance-data-for-arrays-and-linked-lists)
   * [Submission](#submission)
 - [Resources](#resources)
@@ -602,7 +602,7 @@ Complete the implementation of Cache.h / Cache.cpp.  As of now, all accesses
 miss in the cache and no cache block allocation is done.  Complete the read,
 write, and writeBack functions according to what we learned in the lecture.
 
-## Source Code
+### Source Code
 
 I had to write some of the code in C++ this time because there was no way to
 cleanly implement memory objects with just C.  While you may have never learned
